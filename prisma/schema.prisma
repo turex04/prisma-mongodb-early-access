@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongodb"]
+}
+
+model User {
+  id        String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  firstName String
+  lastName  String
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  posts     Post[]    @relation(name: "PostToAuthor")
+  comments  Comment[] @relation(name: "CommentToAuthor")
+}
+
+model Post {
+  id        String    @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  slug      String    @unique
+  title     String
+  body      String
+  comments  Comment[] @relation(name: "CommentToPost")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  author    User      @relation(fields: [userId], references: [id], name: "PostToAuthor")
+  userId    String    @db.ObjectId
+  // categories CategoriesOnPost[] @relation(references: [id])
+}
+
+// model CategoriesOnPost {
+// id    String @id @default(dbgenerated()) @map("_id") @db.ObjectId
+// name  String
+// posts Post[] @relation(references: [id])
+// }
+
+model Comment {
+  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  post      Post     @relation(fields: [postId], references: [id], name: "CommentToPost")
+  postId    String   @db.ObjectId
+  author    User     @relation(fields: [authorId], references: [id], name: "CommentToAuthor")
+  authorId  String   @db.ObjectId
+}
